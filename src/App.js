@@ -22,14 +22,16 @@ import Clock from './img/clock.png';
 import Distance from './img/distance.png';
 import StopWatch from './img/stopwatch.png';
 import Heart from './img/heart.png';
-import Strenght from './img/strenght.png';
+import Strenght from './img/strength.png';
 import Fire from './img/fire.png';
 import Logo from './img/logo.png';
+import Bin from './img/bin.png';
+import Cog from './img/cog.png';
 
+import MapImage from './img/MapImage.png';
 
 import Person from './img/person.png';
 import Dropdown from 'react-bootstrap/Dropdown';
-
 
 const App = () => {
 
@@ -39,14 +41,24 @@ const App = () => {
     const [password, setPassword] = useState("");
     const [tripPoints, setTripPoints] = useState([]);
 
+    const [distance, setDistance] = useState("0.0");
+    const [time, setTime] = useState("0:00:00");
+    const [rate, setRate] = useState("0'0''/km");
+    const [pulse, setPulse] = useState("0");
+    const [calorie, setCalorie] = useState("0");
+    const [strength, setStrength] = useState("0");
+
+    const [selectedTripType, setSelectedTripType] = useState("RUN");
+
     const [trips, setTrips] = useState([]);
 
-    const fileTypes = ["JPG", "PNG", "GIF", "CSV"];
+    const [binHidden, setBinHidden] = useState(false);
+
+    const fileTypes = ["JPG", "PNG", "GIF", "CSV", "XML"];
 
     const handlePopupHidden = () => {
         if (popupHidden) {
             setDragAndDropHidden(true);
-            console.log("asd");
         }
         setPopupHidden(!popupHidden);
     }
@@ -55,30 +67,64 @@ const App = () => {
         setDragAndDropHidden(!dragAndDropHidden);
     }
 
+    const handleBinHidden = () => {
+        setBinHidden(!binHidden);
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
             await authService.login(username, password);
-
             setPopupHidden(true);
 
             const list = await tripService.getUserTrips();
-
-            console.log(list);
             setTrips(list);
 
         } catch (error) {
             console.error(error);
         }
-
     };
 
     const [file, setFile] = useState(null);
-    const handleChange = (file) => {
-        console.log(file.name);
-        setFile(file);
+    const handleChange = async (file) => {
+        try {
+            await tripService.tripImport(file, "RUN");
+
+            setDragAndDropHidden(true);
+
+            const list = await tripService.getUserTrips();
+            console.log(list);
+            setTrips(list);
+
+        } catch (error) {
+            console.error("Błąd podczas importu:", error);
+        }
     };
+
+    function msToTime(duration) {
+        var milliseconds = parseInt((duration % 1000) / 100)
+            , seconds = parseInt((duration / 1000) % 60)
+            , minutes = parseInt((duration / (1000 * 60)) % 60)
+            , hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+
+        hours = (hours < 10) ? "0" + hours : hours;
+        minutes = (minutes < 10) ? "0" + minutes : minutes;
+        seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+        return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
+    }
+
+    const handleDeleteTrip = async (tripId) => {
+        try {
+            await tripService.deleteTrip(tripId);
+            const list = await tripService.getUserTrips();
+            setTrips(list);
+
+        } catch (error) {
+            console.error("Błąd podczas importu:", error);
+        }
+    }
 
     return (<div className="App" style={{ display: "flex" }}>
         <CustomMap latitude={50.094444} longitude={21.483333} points={tripPoints} />
@@ -107,7 +153,7 @@ const App = () => {
                 </div>
             </div>
             <div id="dragAndDrop" hidden={dragAndDropHidden} style={{ position: "fixed", top: "60px", right: "90px" }}>
-                <div style={{ width: "350px", height: "100px", backgroundColor: "#afc1c7" }}>
+                <div style={{ width: "310px", height: "100px", backgroundColor: "#1e7433" }}>
                     <FileUploader
                         handleChange={handleChange}
                         name="file"
@@ -116,11 +162,12 @@ const App = () => {
                         <div style={{
                             width: "350px",
                             height: "100px",
-                            backgroundColor: "#afc1c7",
+                            backgroundColor: "#1e7433",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            cursor: "pointer"
+                            cursor: "pointer",
+                            color: "white"
                         }}>
                             <h5>Przeciągnij plik tutaj</h5>
                         </div>
@@ -156,52 +203,69 @@ const App = () => {
                         </Dropdown.Toggle>
 
                         <Dropdown.Menu>
-                            <Dropdown.Item href="#/action-1">
+                            <Dropdown.Item onClick={() => setSelectedTripType("BIKE")}>
                                 <img src={Bicycle} style={{ width: "30px", height: "30px" }} />
                                 <a style={{ fontWeight: "bold", margin: "5px" }}>Rower</a></Dropdown.Item>
-                            <Dropdown.Item href="#/action-2">
+                            <Dropdown.Item onClick={() => setSelectedTripType("WALK")}>
                                 <img src={Running} style={{ width: "30px", height: "25px", filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.5))" }} />
                                 <a style={{ fontWeight: "bold", margin: "5px" }}>Marsz</a></Dropdown.Item>
-                            <Dropdown.Item href="#/action-3">
+                            <Dropdown.Item onClick={() => setSelectedTripType("RUN")}>
                                 <img src={Walking} style={{ width: "30px", height: "25px", filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.5))" }} />
                                 <a style={{ fontWeight: "bold", margin: "5px" }}>Bieg</a></Dropdown.Item>
                         </Dropdown.Menu>
                     </Dropdown>
-
-                    <img src={Chart} style={{ width: "27px", height: "25px", marginLeft: "auto", cursor: "pointer" }} />
-                </div>
-
-                {trips.map(trip => (
-                    <div key={trip.id} onClick={() => {
-                        const points = trip.pointList.map(point => [
-                            point.latitude,
-                            point.longitude
-                        ]);
-                        setTripPoints(points);
-                    }} style={{ display: "flex", width: "70%", height: "100px", backgroundColor: "#49915c", borderRadius: "50px", marginTop: "20px", cursor: "pointer" }}>
-                        <div style={{ width: "90px", height: "90px", border: "solid", backgroundColor: "white", borderRadius: "50px", margin: "5px" }}></div>
-                        <div style={{ marginTop: "32px", marginLeft: "30px", fontSize: "20px" }}><a style={{ fontWeight: "bold" }}>1:06:52</a> <a style={{ marginLeft: "50px", fontWeight: "bold", color: "#fec007" }}>10.14 km</a></div>
+                    <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
+                        <img
+                            src={Cog}
+                            style={{ width: "27px", height: "25px", cursor: "pointer" }}
+                            onClick={() => handleBinHidden()}
+                        />
+                        <img
+                            src={Chart}
+                            style={{ width: "27px", height: "25px", cursor: "pointer" }}
+                        />
                     </div>
-                ))}
-                <div style={{ display: "flex", width: "70%", height: "100px", backgroundColor: "#49915c", borderRadius: "50px", marginTop: "20px", cursor: "pointer" }}>
-                    <div style={{ width: "90px", height: "90px", border: "solid", backgroundColor: "white", borderRadius: "50px", margin: "5px" }}></div>
-                    <div style={{ marginTop: "32px", marginLeft: "30px", fontSize: "20px" }}><a style={{ fontWeight: "bold" }}>1:06:52</a> <a style={{ marginLeft: "50px", fontWeight: "bold", color: "#fec007" }}>10.14 km</a></div>
-                </div>
-                <div style={{ display: "flex", width: "70%", height: "100px", backgroundColor: "#49915c", borderRadius: "50px", marginTop: "20px", cursor: "pointer" }}>
-                    <div style={{ width: "90px", height: "90px", border: "solid", backgroundColor: "white", borderRadius: "50px", margin: "5px" }}></div>
-                    <div style={{ marginTop: "32px", marginLeft: "30px", fontSize: "20px" }}><a style={{ fontWeight: "bold" }}>1:06:52</a> <a style={{ marginLeft: "50px", fontWeight: "bold", color: "#fec007" }}>10.14 km</a></div>
                 </div>
 
-                <div style={{ backgroundColor: "#49915c", width: "90%", height: "250px", borderRadius: "10px", display:"flex", marginTop:"20px" }}>
+                {trips
+                    .filter(trip => trip.tripType == selectedTripType)
+                    .slice(0, 4)
+                    .map(trip => (
+                        <div key={trip.id} onClick={() => {
+                            const points = trip.pointList.map(point => [
+                                point.latitude,
+                                point.longitude
+                            ]);
+                            setTripPoints(points);
+                            setDistance(trip.distance);
+                            setDragAndDropHidden(true);
+                            setTime(msToTime(trip.totalTime).substring(0,8));
+
+                        }} style={{ display: "flex", width: "70%", height: "100px", backgroundColor: "#49915c", borderRadius: "50px", marginTop: "20px", cursor: "pointer" }}>
+                            <div style={{ width: "90px", height: "90px", border: "solid", backgroundColor: "white", borderRadius: "50px", margin: "5px" }}>
+                                <img style={{ width: "100%", height: "100%" }} src={MapImage}></img>
+                            </div>
+                            <div style={{ marginTop: "32px", marginLeft: "30px", fontSize: "20px" }}><a style={{ fontWeight: "bold" }}>{msToTime(trip.totalTime).substring(0,8)}</a> <a style={{ marginLeft: "50px", fontWeight: "bold", color: "#fec007" }}>{new String(trip.distance).substring(0, 4)} km</a></div>
+                            {binHidden && (
+                                <img
+                                    src={Bin}
+                                    style={{ width: "30px", height: "30px", marginTop: "32px", marginLeft: "15px" }}
+                                    onClick={() => handleDeleteTrip(trip.id)} />
+                            )}
+
+                        </div>
+                    ))}
+
+                <div style={{ backgroundColor: "#49915c", width: "90%", height: "250px", borderRadius: "10px", display: "flex", marginTop: "20px" }}>
                     <div style={{ width: "50%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "30px" }}>
-                        <a><img src={Clock} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft:"10px", color:"#fec007" }}>1:06:52</a></a>
-                        <a><img src={Distance} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft:"10px", color:"#7af1ff" }}>10.14 km</a></a>
-                        <a><img src={StopWatch} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft:"10px" }}>6'36"/km</a></a>
+                        <a><img src={Clock} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#fec007" }}>{time}</a></a>
+                        <a><img src={Distance} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#7af1ff" }}>{new String(distance).substring(0, 4)} km</a></a>
+                        <a><img src={StopWatch} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px" }}>{rate}</a></a>
                     </div>
                     <div style={{ width: "50%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "30px" }}>
-                        <a><img src={Heart} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft:"10px", color:"#5bba75" }}>164 BMP</a></a>
-                        <a><img src={Strenght} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft:"10px", color:"#e89715" }}>174 W</a></a>
-                        <a><img src={Fire} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft:"10px", color:"#eb4034" }}>732 KCAL</a></a>
+                        <a><img src={Heart} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#5bba75" }}>{pulse} BMP</a></a>
+                        <a><img src={Strenght} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#e89715" }}>{strength} W</a></a>
+                        <a><img src={Fire} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#eb4034" }}>{calorie} KCAL</a></a>
                     </div>
                 </div>
 
