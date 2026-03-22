@@ -12,7 +12,6 @@ import Row from 'react-bootstrap/Row';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Alert from '@mui/material/Alert';
 import { FileUploader } from "react-drag-drop-files";
-import CloadUploadIcon from './img/cloud-upload-fill.png';
 
 import Bicycle from './img/cycling.png';
 import Running from './img/nordic_walking.png';
@@ -25,7 +24,6 @@ import StopWatch from './img/stopwatch.png';
 import Heart from './img/heart.png';
 import Strenght from './img/strength.png';
 import Fire from './img/fire.png';
-import Logo from './img/logo.png';
 import Bin from './img/bin.png';
 import Cog from './img/cog.png';
 import MapSearch from './img/map_search.png';
@@ -37,6 +35,12 @@ import Person from './img/person.png';
 import Dropdown from 'react-bootstrap/Dropdown';
 
 import { ReactComponent as Git } from './img/github.svg';
+import { ReactComponent as CloadUploadIcon } from './img/cloud.svg';
+import { ReactComponent as Logo } from './img/map.svg';
+import { ReactComponent as Gear } from './img/gear-fill.svg';
+import { ReactComponent as TripSearch } from './img/pin-map-fill.svg';
+
+import { ReactComponent as Graph } from './img/graph-up-arrow.svg';
 
 const App = () => {
 
@@ -63,7 +67,12 @@ const App = () => {
     const [tripViewHidden, setTripViewHidden] = useState(false);
     const [chartViewHidden, setChartViewHidden] = useState(true);
 
-    const fileTypes = ["JPG", "PNG", "GIF", "CSV", "XML"];
+    const [tripSearchIconColor, setTripSearchIconColor] = useState("#57C95B");
+    const [gearIconColor, setGearIconColor] = useState("#57C95B");
+    const [graphIconColor, setGraphIconColor] = useState("#57C95B");
+    const [cloadUploadIconColor, setCloadUploadIconColor] = useState("#57C95B");
+
+    const fileTypes = ["XML"];
 
     const handlePopupHidden = () => {
         if (popupHidden) {
@@ -141,14 +150,14 @@ const App = () => {
     }
 
     const handleGenerateTripAlert = () => {
-        setGenerateTripAlert(!generateTripAlert);
+        setGenerateTripAlert(false);
         setTripPoints([]);
         setHearing(true);
     }
 
     return (<div className="App" style={{ display: "flex" }}>
-        <CustomMap latitude={50.094444} longitude={21.483333} points={tripPoints} hearing={hearing} />
-        <div style={{ width: "30%", height: "100vh", backgroundColor: "#5bba75" }}>
+        <CustomMap latitude={50.094444} longitude={21.483333} points={tripPoints} hearing={hearing} onPointSelect={setGenerateTripAlert} />
+        <div style={{ width: "30%", height: "100vh", backgroundColor: "#1A1F2B" }}>
 
             <div id="popup" hidden={popupHidden} style={{ width: "230px", height: "270px", backgroundColor: "white", position: "fixed", top: "30px", right: "30px", borderRadius: "20px" }}>
                 <h3 style={{ margin: "15px" }}>Logowanie</h3>
@@ -182,7 +191,7 @@ const App = () => {
                         <div style={{
                             width: "350px",
                             height: "100px",
-                            backgroundColor: "#1e7433",
+                            backgroundColor: "#2A2F3E",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -200,15 +209,16 @@ const App = () => {
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%", marginBottom: "40px", alignItems: "center" }}>
 
                     <div style={{ width: "200px", height: "50px", marginTop: "15px" }}>
-                        <img src={Logo} />
-                        <a style={{ fontWeight: "bold" }}>GeoTrip</a>
+                        <Logo style={{ color: "#57C95B", width: "50px", height: "30px" }} />
+                        <a style={{ fontWeight: "bold", color: "white" }}>GeoTrip</a>
                     </div>
                     <Alert variant="filled" severity="info" style={{ position: "fixed", right: "0", margin: "10px" }} hidden={generateTripAlert}>
                         Wybierz miejsce rozpoczęcia trasy.
                     </Alert>
                     <div style={{ display: "flex", alignItems: "center" }}>
-                        <div onClick={handleDragAndDropHidden} style={{ width: "50px", height: "50px", marginRight: "15px" }}>
-                            <img src={CloadUploadIcon} style={{ height: "25px", width: "25px", marginTop: "15px", cursor: "pointer" }} />
+                        <div onClick={handleDragAndDropHidden} style={{ width: "50px", height: "50px", marginRight: "0px", marginTop: "20px" }}>
+                            <CloadUploadIcon style={{ width: "30px", height: "25px", color: cloadUploadIconColor, cursor:"pointer"}}onMouseEnter={() => setCloadUploadIconColor("#155017")}
+                            onMouseLeave={() => setCloadUploadIconColor("#57C95B")} />
                         </div>
                         <img
                             src={Person}
@@ -217,9 +227,16 @@ const App = () => {
                         />
                     </div>
                 </div>
-                <div style={{ width: "100%", height: "30px", backgroundColor: "#5bba75", display: "flex", alignItems: "center", padding: "0 15px" }}>
+                <div style={{ width: "100%", height: "30px", backgroundColor: "#1A1F2B", display: "flex", alignItems: "center", padding: "0 15px" }}>
                     <Dropdown>
-                        <Dropdown.Toggle id="dropdown-basic" size='sm' variant='warning'>
+                        <Dropdown.Toggle id="dropdown-basic" size='sm' style={{
+                            backgroundColor: "#57C95B",
+                            borderColor: "#57C95B",
+                            color: "#2A2F3E",
+                            fontWeight: "bold",
+                            display: "flex",
+                            alignItems: "center"
+                        }}>
                             <img src={NordicWalking} style={{ width: "30px", height: "30px", marginRight: "5px" }} />
                             <a style={{ fontWeight: "bold", margin: "5px" }}>Aktywność</a>
                         </Dropdown.Toggle>
@@ -238,27 +255,31 @@ const App = () => {
                     </Dropdown>
 
                     <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
-                        <img
-                            src={MapSearch}
-                            style={{ width: "27px", height: "25px", cursor: "pointer" }}
+
+                        <TripSearch
+                            style={{ width: "27px", height: "25px", cursor: "pointer", color: tripSearchIconColor}}
                             onClick={() => handleGenerateTripAlert()}
+                            onMouseEnter={() => setTripSearchIconColor("#155017")}
+                            onMouseLeave={() => setTripSearchIconColor("#57C95B")}
                         />
-                        <img
-                            src={Cog}
-                            style={{ width: "27px", height: "25px", cursor: "pointer" }}
+                        <Gear
+                            style={{ width: "27px", height: "25px", cursor: "pointer", color: gearIconColor }}
                             onClick={() => handleBinHidden()}
+                            onMouseEnter={() => setGearIconColor("#155017")}
+                            onMouseLeave={() => setGearIconColor("#57C95B")}
                         />
-                        <img
-                            src={Chart}
-                            style={{ width: "27px", height: "25px", cursor: "pointer" }}
+                        <Graph
+                            style={{ width: "27px", height: "25px", cursor: "pointer", color: graphIconColor}}
                             onClick={() => handleTripViewHidden()}
+                            onMouseEnter={() => setGraphIconColor("#155017")}
+                            onMouseLeave={() => setGraphIconColor("#57C95B")}
                         />
                     </div>
                 </div>
                 <div hidden={chartViewHidden} style={{ backgroundColor: "#fbfbfb", width: "90%", height: "650px", marginTop: "50px", borderRadius: "10px" }}>
                     <a>#49915c</a>
                     <ProgressBar style={{ margin: "10px" }} now={80} label={`Zrobiono 80% km do końca wyzwania`} />
-                    <Git fill="#77448b"/>
+                    <Git fill="#77448b" />
                 </div>
                 <div hidden={tripViewHidden} style={{ width: "100%", justifyItems: "center" }}>
                     {trips
@@ -274,31 +295,66 @@ const App = () => {
                                 setDistance(trip.distance);
                                 setDragAndDropHidden(true);
                                 setTime(msToTime(trip.totalTime).substring(0, 8));
+                            }} style={{
+                                display: "flex",
+                                width: "90%",
+                                height: "100px",
+                                backgroundColor: "#2A2F3E",
+                                borderRadius: "50px",
+                                marginTop: "20px",
+                                cursor: "pointer",
+                                alignItems: "center"
+                            }}>
 
-                            }} style={{ display: "flex", width: "70%", height: "100px", backgroundColor: "#49915c", borderRadius: "50px", marginTop: "20px", cursor: "pointer" }}>
-                                <div style={{ width: "90px", height: "90px", border: "solid", backgroundColor: "white", borderRadius: "50px", margin: "5px" }}>
-                                    <img style={{ width: "100%", height: "100%" }} src={MapImage}></img>
+                                <div style={{ minWidth: "90px", width: "90px", height: "90px", border: "solid", backgroundColor: "white", borderRadius: "50px", margin: "5px", borderColor: "#59be5c", overflow: "hidden" }}>
+                                    <img style={{ width: "100%", height: "100%", objectFit: "cover" }} src={MapImage} alt="Map" />
                                 </div>
-                                <div style={{ marginTop: "32px", marginLeft: "30px", fontSize: "20px" }}><a style={{ fontWeight: "bold" }}>{msToTime(trip.totalTime).substring(0, 8)}</a> <a style={{ marginLeft: "50px", fontWeight: "bold", color: "#fec007" }}>{new String(trip.distance).substring(0, 4)} km</a></div>
+
+
+                                <div style={{
+                                    flex: 1,
+                                    fontSize: "20px",
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    padding: "0 25px"
+                                }}>
+                                    <span style={{ fontWeight: "bold", color: "white" }}>
+                                        {msToTime(trip.totalTime).substring(0, 8)}
+                                    </span>
+                                    <span style={{ fontWeight: "bold", color: "white" }}>
+                                        6'25"/km
+                                    </span>
+
+                                    <span style={{ fontWeight: "bold", color: "#fec007" }}>
+                                        {String(trip.distance).substring(0, 4)} km
+                                    </span>
+                                </div>
+
                                 {binHidden && (
                                     <img
                                         src={Bin}
-                                        style={{ width: "30px", height: "30px", marginTop: "32px", marginLeft: "15px" }}
-                                        onClick={() => handleDeleteTrip(trip.id)} />
+                                        alt="Delete"
+                                        style={{ width: "30px", height: "30px", marginRight: "25px" }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteTrip(trip.id);
+                                        }}
+                                    />
                                 )}
                             </div>
                         ))}
 
-                    <div style={{ backgroundColor: "#49915c", width: "90%", height: "250px", borderRadius: "10px", display: "flex", marginTop: "20px" }}>
+                    <div style={{ backgroundColor: "#2A2F3E", width: "90%", height: "250px", borderRadius: "10px", display: "flex", marginTop: "20px" }}>
                         <div style={{ width: "50%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "30px" }}>
                             <a><img src={Clock} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#fec007" }}>{time}</a></a>
-                            <a><img src={Distance} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#7af1ff" }}>{new String(distance).substring(0, 4)} km</a></a>
-                            <a><img src={StopWatch} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px" }}>{rate}</a></a>
+                            <a><img src={Distance} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#9CA3AF" }}>{new String(distance).substring(0, 4)} km</a></a>
+                            <a><img src={StopWatch} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#9CA3AF" }}>{rate}</a></a>
                         </div>
                         <div style={{ width: "50%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "30px" }}>
-                            <a><img src={Heart} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#5bba75" }}>{pulse} BMP</a></a>
-                            <a><img src={Strenght} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#e89715" }}>{strength} W</a></a>
-                            <a><img src={Fire} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#eb4034" }}>{calorie} KCAL</a></a>
+                            <a><img src={Heart} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#9CA3AF" }}>{pulse} BMP</a></a>
+                            <a><img src={Strenght} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#9CA3AF" }}>{strength} W</a></a>
+                            <a><img src={Fire} style={{ width: "40px" }} /><a style={{ fontWeight: "bold", fontSize: "20px", marginLeft: "10px", color: "#ce6d5b" }}>{calorie} KCAL</a></a>
                         </div>
                     </div>
                 </div>
