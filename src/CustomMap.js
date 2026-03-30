@@ -15,6 +15,7 @@ import Cross from './img/cross.png';
 import graphhopperService from "./services/graphhopper.service";
 
 import L from "leaflet";
+import tripService from "./services/trip.service";
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -83,7 +84,7 @@ const MapClickHandler = ({ hearingFinish, setStartPointPosition, setLastPointPos
   return null;
 };
 
-const CustomMap = ({ points, hearing, onPointSelect}) => {
+const CustomMap = ({ points, hearing, onPointSelect }) => {
   const [hearingFinish, setHearingFinish] = useState(false);
   const [startPointPosition, setStartPointPosition] = useState([50.041707, 22.002525]);
   const [lastPointPosition, setLastPointPosition] = useState([50.041707, 22.002525]);
@@ -93,6 +94,9 @@ const CustomMap = ({ points, hearing, onPointSelect}) => {
   const [distance, setDistance] = useState("Krótki");
   const [saveButtonVisibility, setSaveButtonVisibility] = useState(false);
   const [temporaryPoints, setTemporaryPoints] = useState([]);
+  const [isGenerated, setIsGenerated] = useState(false);
+  const [isSaveButtonClick, setIsSaveButtonClick] = useState(false);
+  const [addPointVisibility, setAddPointVisibility] = useState(true);
 
   const handleRange = (e) => {
     console.log(e.target.value);
@@ -120,11 +124,11 @@ const CustomMap = ({ points, hearing, onPointSelect}) => {
   const generateExampleTrip = async () => {
     const res = await graphhopperService.loadExapleTrip(startPointPosition, lastPointPosition, range);
 
-    console.log(res);
     setTemporaryPoints([]);
     setExampleTripPoints([
       res
     ]);
+    setIsGenerated(true);
   };
 
   const loadTripBetweenPoints = async () => {
@@ -137,7 +141,12 @@ const CustomMap = ({ points, hearing, onPointSelect}) => {
 
   const updateTrip = async () => {
 
-    if(exampleTripPoints[0] == undefined) {
+    if (isGenerated) {
+      exampleTripPoints[0] = [startPointPosition];
+      setIsGenerated(false);
+    }
+
+    if (exampleTripPoints[0] == undefined) {
       exampleTripPoints[0] = [startPointPosition];
     }
 
@@ -152,7 +161,7 @@ const CustomMap = ({ points, hearing, onPointSelect}) => {
     try {
       const res = await graphhopperService.loadTripBetweenPoints(lastPoint, lastPointPosition, null);
       const updatedPoints0 = [...exampleTripPoints[0], ...res];
-
+      setSaveButtonVisibility(true);
       setExampleTripPoints([
         updatedPoints0,
         ...exampleTripPoints.slice(1)
@@ -162,6 +171,18 @@ const CustomMap = ({ points, hearing, onPointSelect}) => {
       console.error("Błąd pobierania trasy:", error);
     }
 
+  }
+
+  const saveUserTrip = async () => {
+    setIsSaveButtonClick(true);
+    setAddPointVisibility(false);
+    // setSaveButtonVisibility(false);
+
+    setTemporaryPoints([]);
+    setExampleTripPoints([]);
+    // setLastPointPosition([]);
+    tripService.saveUserTrip(exampleTripPoints[0]);
+    window.location.reload();
   }
 
 
@@ -234,31 +255,33 @@ const CustomMap = ({ points, hearing, onPointSelect}) => {
               value="Generuj trasę"
               onClick={loadTripBetweenPoints}
             />
-            <input
-              style={{ backgroundColor: "#eb9d44", color: "white", borderRadius: "10px", marginLeft: "5px" }}
-              type="button"
-              value="Dodaj punkt"
-              onClick={updateTrip}
-            />
+            {addPointVisibility && (
+              <input
+                style={{ backgroundColor: "#eb9d44", color: "white", borderRadius: "10px", marginLeft: "5px" }}
+                type="button"
+                value="Dodaj punkt"
+                onClick={updateTrip}
+              />
+            )}
+
             {saveButtonVisibility && (
               <input
                 style={{ backgroundColor: "#6ce25c", color: "white", borderRadius: "10px", margin: "5px" }}
                 type="button"
                 value="Zapisz trasę"
-                onClick={loadTripBetweenPoints}
+                onClick={saveUserTrip}
               />
             )}
-            <div style={{
-              backgroundColor: "#6ce25c",
-              width: "100%",
-              height: "auto",
-              minHeight: "20px",
-              borderRadius: "10px",
-              paddingBottom: "10px"
-            }}>
-
-              <div style={{ paddingTop: "10px" }}>
-                {temporaryPoints.length > 0 && temporaryPoints.map((p, index) => (
+            <div style={{ paddingTop: "10px" }}>
+              {isSaveButtonClick == false && temporaryPoints.length > 0 && temporaryPoints.map((p, index) => (
+                <div style={{
+                  backgroundColor: "#6ce25c",
+                  width: "100%",
+                  height: "auto",
+                  minHeight: "20px",
+                  borderRadius: "10px",
+                  paddingBottom: "10px"
+                }}>
                   <div key={index} style={{
                     color: "#000000",
                     fontWeight: "bold",
@@ -266,14 +289,15 @@ const CustomMap = ({ points, hearing, onPointSelect}) => {
                     marginTop: "5px",
                     fontSize: "14px",
                     lineHeight: "1.5"
-                  }}>
-                    <img src={Arrow} style={{width:"20px", marginRight:"10px"}}/>
+                  }}><div style={{ height: "10px" }} />
+                    <img src={Arrow} style={{ width: "20px", marginRight: "10px" }} />
                     {String(p[0]).substring(0, 7)} {String(p[1]).substring(0, 7)}
-                    <img src={Cross} style={{width:"15px", marginLeft:"10px", cursor:"pointer"}}/> 
+                    <img src={Cross} style={{ width: "15px", marginLeft: "10px", cursor: "pointer" }} />
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
+
           </Popup>
         </Marker>
       )}

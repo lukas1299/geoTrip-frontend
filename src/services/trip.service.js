@@ -19,5 +19,19 @@ const deleteTrip = async (tripId) => {
   return response.data;
 }
 
-const tripService = { getUserTrips, tripImport, deleteTrip };
-export default tripService;
+const updateFavoriteStatus = async (tripId, isFavorite) => {
+  const response = await API.patch(`/trips/${tripId}`, {
+    "isFavorite":isFavorite
+  });
+  return response.data;
+}
+
+const saveUserTrip = async (tripPoints) => {
+  const response = await API.post(`/trips/custom`,
+    tripPoints
+  );
+  return response.data;
+}
+
+const tripService = { getUserTrips, tripImport, deleteTrip, updateFavoriteStatus, saveUserTrip};
+export default tripService; 
