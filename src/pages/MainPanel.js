@@ -1,64 +1,67 @@
-import './App.css';
+import '../App.css';
 import 'leaflet/dist/leaflet.css';
-import CustomMap from './CustomMap.js';
-import tripService from './services/trip.service.js';
+import CustomMap from '../pages/CustomMap.js';
+import tripService from '../services/trip.service.js';
 import { useEffect, useState } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Alert from '@mui/material/Alert';
 import { FileUploader } from "react-drag-drop-files";
 
-import { ReactComponent as Clock } from './img/clock.svg';
-import { ReactComponent as Distance } from './img/distance.svg';
-import { ReactComponent as StopWatch } from './img/stopWatch.svg';
-import { ReactComponent as Heart } from './img/heart.svg';
-import { ReactComponent as Strenght } from './img/strenght.svg';
-import { ReactComponent as Fire } from './img/fire.svg';
+import { ReactComponent as Clock } from '../img/clock.svg';
+import { ReactComponent as Distance } from '../img/distance.svg';
+import { ReactComponent as StopWatch } from '../img/stopWatch.svg';
+import { ReactComponent as Heart } from '../img/heart.svg';
+import { ReactComponent as Strenght } from '../img/strenght.svg';
+import { ReactComponent as Fire } from '../img/fire.svg';
 
-import Person from './img/person.png';
+import Person from '../img/person.png';
 import Dropdown from 'react-bootstrap/Dropdown';
 
 import { useNavigate } from 'react-router-dom';
-import { ReactComponent as CloadUploadIcon } from './img/cloud.svg';
-import { ReactComponent as OpenDoor } from './img/door-open.svg';
-import { ReactComponent as Logo } from './img/map.svg';
-import { ReactComponent as Gear } from './img/gear-fill.svg';
-import { ReactComponent as TripSearch } from './img/pin-map-fill.svg';
-import { ReactComponent as Graph } from './img/graph-up-arrow.svg';
-import { ReactComponent as Pencil } from './img/pencil.svg';
-import { ReactComponent as Star } from './img/star.svg';
-import { ReactComponent as FillStar } from './img/star-fill.svg';
-import { ReactComponent as Check } from './img/check-circle-fill.svg';
+import { ReactComponent as CloadUploadIcon } from '../img/cloud.svg';
+import { ReactComponent as OpenDoor } from '../img/door-open.svg';
+import { ReactComponent as Logo } from '../img/map.svg';
+import { ReactComponent as Gear } from '../img/gear-fill.svg';
+import { ReactComponent as TripSearch } from '../img/pin-map-fill.svg';
+import { ReactComponent as Graph } from '../img/graph-up-arrow.svg';
+import { ReactComponent as Pencil } from '../img/pencil.svg';
+import { ReactComponent as Star } from '../img/star.svg';
+import { ReactComponent as FillStar } from '../img/star-fill.svg';
+import { ReactComponent as Check } from '../img/check-circle-fill.svg';
 
-import { ReactComponent as Delete } from './img/delete.svg';
+import { ReactComponent as Delete } from '../img/delete.svg';
 
-import { ReactComponent as Cycling } from './img/cycling.svg';
-import { ReactComponent as Running } from './img/running.svg';
-import { ReactComponent as Walking } from './img/walking.svg';
-import { ReactComponent as QuestionMark } from './img/questionMark.svg';
+import { ReactComponent as Cycling } from '../img/cycling.svg';
+import { ReactComponent as Running } from '../img/running.svg';
+import { ReactComponent as Walking } from '../img/walking.svg';
+import { ReactComponent as QuestionMark } from '../img/questionMark.svg';
 
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import dataService from '../services/data.service.js';
 
 
 const MainPanel = () => {
 
-    const data = [
-        { nazwa: 'Styczeń', kilometry: 345 },
-        { nazwa: 'Luty', kilometry: 134 },
-        { nazwa: 'Marzec', kilometry: 34 },
-        { nazwa: 'Kwiecień', kilometry: 27 },
-        { nazwa: 'Maj', kilometry: 140 },
-        { nazwa: 'Czerwiec', kilometry: 30 },
-        { nazwa: 'Lipiec', kilometry: 201 },
-        { nazwa: 'Sierpień', kilometry: 270 }
+    const dataFormat = [
+        { nazwa: 'Styczeń', kilometry: 0 },
+        { nazwa: 'Luty', kilometry: 0 },
+        { nazwa: 'Marzec', kilometry: 0 },
+        { nazwa: 'Kwiecień', kilometry: 0 },
+        { nazwa: 'Maj', kilometry: 0 },
+        { nazwa: 'Czerwiec', kilometry: 0 },
     ];
 
-    const data1 = [
-        { name: 'Elektronika', value: 400 },
-        { name: 'Moda', value: 300 },
-        { name: 'Dom', value: 300 },
-        { name: 'Inne', value: 200 },
+    const [chartdata, setChartData] = useState(dataFormat);
+
+    const [yearlyGoal, setYearlyGoal] = useState(0);
+    const [totalDistance, setTotalDistance] = useState(0);
+
+    const pieChartData = [
+        { name: 'Cel', value: yearlyGoal },
+        { name: 'Zrobione', value: totalDistance }
     ];
+
 
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -95,6 +98,11 @@ const MainPanel = () => {
     const [starColor, setStarColor] = useState("#57C95B");
     const [logoutColor, setLogoutIconColor] = useState("#57C95B");
 
+    const [startIndex, setStartIndex] = useState(0);
+    const visibleCount = 4; 
+
+    const filteredTrips = trips.filter(trip => trip.tripType === selectedTripType);
+
     const navigate = useNavigate();
 
     const handleSetSelectedTripType = (type) => {
@@ -108,7 +116,6 @@ const MainPanel = () => {
         } else {
             setDropDownText("Inne");
         }
-
     }
 
     const handlePopupHidden = () => {
@@ -119,6 +126,7 @@ const MainPanel = () => {
     }
 
     const handleTripViewHidden = () => {
+        loadUserData();
         setTripViewHidden(!tripViewHidden);
         setChartViewHidden(!chartViewHidden);
     }
@@ -225,9 +233,33 @@ const MainPanel = () => {
         return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
     }
 
+    const handleScroll = (e) => {
+        if (e.deltaY > 0) {
+            setStartIndex((prev) =>
+                Math.min(prev + 1, Math.max(0, filteredTrips.length - visibleCount))
+            );
+        } else {
+            setStartIndex((prev) => Math.max(prev - 1, 0));
+        }
+    };
+
+    const loadUserData = async () => {
+        const data = await dataService.loadData();
+
+        const formattedData = Object.entries(data.monthlyBreakdown).map(([miesiac, wartosc]) => ({
+        nazwa: miesiac,
+        kilometry: wartosc
+    }));
+        console.log(data.monthlyBreakdown);
+        setChartData(formattedData);
+        setYearlyGoal(data.yearlyGoal);
+        setTotalDistance(data.totalDistance);
+        
+
+    }
+
     useEffect(() => {
         loadTrips();
-
     }, []);
 
     return (<div className="App" style={{ display: "flex" }}>
@@ -263,7 +295,7 @@ const MainPanel = () => {
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%", marginBottom: "40px", alignItems: "center" }}>
 
                     <div style={{ width: "200px", height: "50px", marginTop: "15px" }}>
-                        <Logo style={{ color: "#57C95B", width: "50px", height: "30px" }} />
+                        <Logo style={{ color: "#57C95B", width: "50px", height: "30px",filter: "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8))" }} />
                         <a style={{ fontWeight: "bold", color: "white" }}>GeoTrip</a>
                     </div>
                     <Alert variant="filled" severity="info" style={{ position: "fixed", right: "0", margin: "10px" }} hidden={generateTripAlert}>
@@ -300,7 +332,7 @@ const MainPanel = () => {
                                 selectedTripType === "WALK" ? <Walking style={{ width: "30px", height: "30px", fill: "#2A2F3E" }} /> :
                                     selectedTripType === "BIKE" ? <Cycling style={{ width: "30px", height: "30px", fill: "#2A2F3E" }} /> :
                                         <QuestionMark style={{ width: "30px", height: "30px", fill: "#2A2F3E" }} />}
-                           
+
                             <a style={{ fontWeight: "bold", margin: "5px" }}>{dropDownText}</a>
                         </Dropdown.Toggle>
 
@@ -343,12 +375,12 @@ const MainPanel = () => {
                     </div>
                 </div>
                 <div hidden={chartViewHidden} style={{ backgroundColor: "#2A2F3E", width: "90%", height: "650px", marginTop: "50px", borderRadius: "10px" }}>
-                    <span style={{color:"#57C95B", fontWeight:"bold", fontSize:"20px", fontFamily:"sans-serif", filter: "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8))"}}>Statystyki</span>
+                    <span style={{ color: "#57C95B", fontWeight: "bold", fontSize: "20px", fontFamily: "sans-serif", filter: "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8))" }}>Statystyki</span>
                     <div style={{ width: '100%', height: "300px" }}>
                         <ResponsiveContainer>
                             <PieChart>
                                 <Pie
-                                    data={data1}
+                                    data={pieChartData}
                                     cx="50%"
                                     cy="50%"
                                     labelLine={false}
@@ -359,7 +391,7 @@ const MainPanel = () => {
                                     dataKey="value"
                                 >
 
-                                    {data.map((entry, index) => (
+                                    {pieChartData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
@@ -371,7 +403,7 @@ const MainPanel = () => {
                     </div>
                     <div style={{ width: "80%", height: "300px", margin: "auto" }}>
                         <ResponsiveContainer>
-                            <BarChart data={data} margin={{ top: 20, bottom: 5 }}>
+                            <BarChart data={chartdata} margin={{ top: 20, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="nazwa" />
                                 <YAxis />
@@ -386,10 +418,10 @@ const MainPanel = () => {
                     </div>
 
                 </div>
-                <div hidden={tripViewHidden} style={{ width: "100%", justifyItems: "center" }}>
+                <div hidden={tripViewHidden} style={{ width: "100%", justifyItems: "center" }} onWheel={handleScroll}>
                     {trips
                         .filter(trip => trip.tripType === selectedTripType)
-                        .slice(0, 4)
+                        .slice(startIndex, startIndex + visibleCount)
                         .map(trip => {
                             const isFav = trip.isFavorite;
                             const borderColor = isFav ? "yellow" : "#57C95B";
@@ -416,23 +448,23 @@ const MainPanel = () => {
                                         <span>{trip.rate}</span>
                                         <span style={{ color: "#fec007" }}>{String(trip.distance).substring(0, 4)} km</span>
                                     </div>
-                                    {binHidden && <Delete style={{ width: "30px", height: "30px", marginRight: "15px", fill: "#e44848" }} />}
+                                    {binHidden && <Delete style={{ width: "30px", height: "30px", marginRight: "15px", fill: "#e44848" }} onClick={() => handleDeleteTrip(trip.id)} />}
                                 </div>
                             );
                         })}
-                
+
                     <div style={{ backgroundColor: "#2A2F3E", width: "90%", minHeight: "250px", borderRadius: "10px", display: "flex", marginTop: "20px", justifyContent: "space-around", padding: "10px" }}>
                         {[
                             { col: 1, items: [[Clock, time, "", "#fec007"], [Distance, `${String(distance).substring(0, 4)} km`, "", "#9CA3AF"], [StopWatch, rate, "", "#9CA3AF"]] },
-                            { col: 2, items: [[Heart, pulse, "BMP" , "#9CA3AF"], [Strenght, strength, "W", "#9CA3AF"], [Fire, calorie, "KCAL", "#ce6d5b"]] }
+                            { col: 2, items: [[Heart, pulse, "BMP", "#9CA3AF"], [Strenght, strength, "W", "#9CA3AF"], [Fire, calorie, "KCAL", "#ce6d5b"]] }
                         ].map((column, idx) => (
                             <div key={idx} style={{ width: "40%", display: "flex", flexDirection: "column", justifyContent: "center", gap: "25px" }}>
                                 {column.items.map(([Icon, val, label, color], i) => (
                                     <div key={i} style={{ display: "flex", alignItems: "center" }}>
-                                        <div style={{ width: "40px", display: "flex", justifyContent: "center" }}><Icon style={{filter: "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8))"}} /></div>
+                                        <div style={{ width: "40px", display: "flex", justifyContent: "center" }}><Icon style={{ filter: "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8))" }} /></div>
                                         {editMode && idx === 1 ? (
                                             <>
-                                                <input style={{ width: "50px", backgroundColor: "#1F232F", border: "none", marginLeft: "15px", borderRadius: "5px", textAlign: "center", color: "red", fontWeight: "bold" }} placeholder={val} />
+                                                <input style={{ width: "50px", backgroundColor: "#1F232F", border: "none", marginLeft: "15px", borderRadius: "5px", textAlign: "center", color: "red", fontWeight: "bold" }} placeholder={val} onInput={(e) => console.log(e.target.value + " " + i)} />
                                                 <span style={{ fontWeight: "bold", marginLeft: "10px", color: "#9CA3AF" }}>{label}</span>
                                             </>
                                         ) : (
@@ -446,13 +478,13 @@ const MainPanel = () => {
                         {favoriteVisibility && (
                             <div style={{ width: "10%", display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "center", padding: "10px 0" }}>
                                 {editMode ?
-                                    <Check style={{ fill: "#57C95B", width: "20px", height:"20px", cursor: "pointer", filter: "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8))" }} onClick={() => handleChangeEditMode(false)} /> :
-                                    <Pencil style={{ fill: "#57C95B", width: "20px", height:"20px", cursor: "pointer", filter: "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8))" }} onClick={() => handleChangeEditMode(true)} />
+                                    <Check style={{ fill: "#57C95B", width: "20px", height: "20px", cursor: "pointer", filter: "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8))" }} onClick={() => handleChangeEditMode(false)} /> :
+                                    <Pencil style={{ fill: "#57C95B", width: "20px", height: "20px", cursor: "pointer", filter: "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8))" }} onClick={() => handleChangeEditMode(true)} />
                                 }
                                 <div onClick={() => updateFavoriteStatus(!isFavorite)} onMouseEnter={() => setStarColor("yellow")} onMouseLeave={() => setStarColor("#57C95B")} style={{ cursor: "pointer" }}>
                                     {isFavorite ?
-                                        <FillStar style={{ fill: "yellow", width: "20px", height:"20px", filter: "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8))" }} /> :
-                                        <Star style={{ fill: starColor, width: "20px", height:"20px", filter: "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8))"}} />
+                                        <FillStar style={{ fill: "yellow", width: "20px", height: "20px", filter: "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8))" }} /> :
+                                        <Star style={{ fill: starColor, width: "20px", height: "20px", filter: "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8))" }} />
                                     }
                                 </div>
                             </div>

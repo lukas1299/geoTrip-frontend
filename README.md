@@ -1,70 +1,94 @@
-# Getting Started with Create React App
+# 🗺️ GeoTrip 
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Interaktywny planer treningów zintegrowany z mapami. Aplikacja łączy moc React.js oraz Spring Boot, wykorzystując MongoDB do gromadzenia danych o aktywnościach. System umożliwia intuicyjne wyznaczanie tras (bieganie, rower, marsz) przy użyciu API GraphHopper oraz dostarcza szczegółowych informacji o postępach użytkownika, motywując do systematycznego treningu.
 
-## Available Scripts
+## ✨ Kluczowe Funkcjonalności
 
-In the project directory, you can run:
+* **🔐 Bezpieczeństwo z Keycloak** – Pełna obsługa logowania, rejestracji i odświeżania tokenów (JWT) poprzez serwer Keycloak.
+* **GraphHopper** – Zaawansowane wyznaczanie tras z wykorzystaniem zewnętrznego API.
+* **Interaktywna mapa** – Autorska implementacja mapy w komponencie `CustomMap.js`.
+* **Zarządzanie treningami** – Możliwość dodanie własnego treningu poprzez zaplanowanie go na mapie lub użycie trasy wygenerowanej przez **GraphHopper**
+* **Wgląd w statystyki** - Możliwość śledzenia postępów użytkownika na przygotowanych wykresach.
+* **Importowanie tras z XML** – Dodawanie własnych tras z pliku `.xml `
 
-### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🔧 Stack Technologiczny
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 💻 Frontend
+* **⚛️React.js** 
+* **🗺️GraphHopper API** 
+* **📡Axios**
+* **🎨Bootstrap Icons**
+* **📈Recharts**
 
-### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### ⚙️ Backend
+* **☕Java & 🍃Spring Boot** 
+* **🍃MongoDB** 
+* **📦Maven** 
 
-### `npm run build`
+### 🔧 Narzędzia i Inne
+* **🔐Keycloak** 
+* **🐙Git** 
+* **🚀Postman**
+* **🐳Docker**
+* **💻VS CODE**
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 📂 Struktura Projektu
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Projekt korzysta z podziału na warstwę widoków oraz warstwę usług (logiki biznesowej):
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+* `src/pages/` – Główne widoki aplikacji (`MainPanel`, `LoginPage`, `RegisterPage`).
+* `src/services/` – Moduły odpowiedzialne za komunikację z API (`api.js`, `graphhopper.service.js`, `auth.service.js`).
+* `src/img/` – Zasoby graficzne i ikony wykorzystywane w aplikacji.
 
-### `npm run eject`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🔑 Podgląd ekranu logowania
+![Login](./src/img/logowanie.png)
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 🖥️ Podgląd ekranu głównego
+Główny pulpit aplikacji został podzielony na dwie funkcjonalne sekcje:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+![MainPanel](./src/img/ekran_glowny.png)
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+* **Lewa strona (Mapa):** Interaktywny ekran mapy, na którym wizualizowane są trasy treningów oraz punkty nawigacyjne w czasie rzeczywistym.
+* **Prawa strona (Panel sterowania):** Intuicyjny panel boczny, umożliwiający użytkownikowi zarządzanie parametrami treningu, filtrowanie danych oraz wykonywanie operacji na trasach.
 
-## Learn More
+## 📂 Import trasy z pliku XML
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Proces importu trasy z pliku `.xml` odbywa się poprzez przeciągnięcie go na wyznaczone pole następnie trasa dodana zostanie do profilu użytkownika.
+![Import](./src/img/import.png)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🗺️ Planowanie trasy
 
-### Code Splitting
+Aplikacja oferuje możliwość planowania tras treningu na podstawie wyboru długości dystansu bez konieczności podawania określonych ilości kilometrów tylko w oparciu o lużno zdefiniowane progi takie jak: `Krótki`, `Średni`, `Długi`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+![PlanowanieTrasy](./src/img/zaplanowana_trasa.png)
 
-### Analyzing the Bundle Size
+Ponadto możemy ustalać trasę dodając kolejne punkty na mapie zgodnie z tym jak chcemy aby nasza trasa przebiegała.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+![PlanowanieTrasy2](./src/img/zaplanowana_trasa_punkty.png)
 
-### Making a Progressive Web App
+Aplikacja również ma możliwość generowania trasy pomiędzy dwoma wyznaczonymi punktami.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+![PlanowanieTrasy3](./src/img/wygenerowana_trasa.png)
 
-### Advanced Configuration
+## 📉 Wykresy i statystyki (w fazie implementacji)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Funkcjonalnością aktualnie wprowadzaną będzie prezentacja postępów użytkownika prezentowana w formie wykresów.
 
-### Deployment
+<video src="./src/img/wykresy.mp4" width="666" height="472" controls muted autoplay loop>
+  Twoja przeglądarka nie obsługuje odtwarzania wideo.
+</video>
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-### `npm run build` fails to minify
+## 🛠️ Instrukcja Uruchomienia
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Aby uruchomić projekt lokalnie, wykonaj poniższe kroki:
+
+1. **Sklonuj repozytorium:**
+   ```bash
+   git clone [https://github.com/lukas1299/geoTrip-frontend.git](https://github.com/lukas1299/geoTrip-frontend.git)
+   cd geoTrip-frontend
+   npm install 
+   npm start 

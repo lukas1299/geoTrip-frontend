@@ -1,21 +1,21 @@
-import "./App.css";
+
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
 
-import Start from "./img/pin_start.png";
-import End from "./img/pin_end.png";
-import StartTrip from "./img/start.png";
-import FinishTrip from "./img/finish.png";
-import temporaryPoint from "./img/temporaryPoint.png";
+import Start from "../img/pin_start.png";
+import End from "../img/pin_end.png";
+import StartTrip from "../img/start.png";
+import FinishTrip from "../img/finish.png";
+import temporaryPoint from "../img/temporaryPoint.png";
 
-import Arrow from './img/arrow.png';
-import Cross from './img/cross.png';
+import Arrow from '../img/arrow.png';
+import Cross from '../img/cross.png';
 
-import graphhopperService from "./services/graphhopper.service";
+import graphhopperService from "../services/graphhopper.service";
 
 import L from "leaflet";
-import tripService from "./services/trip.service";
+import tripService from "../services/trip.service";
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -53,8 +53,6 @@ const temporaryPointsIcon = L.icon({
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],
 });
-
-
 
 const ChangeView = ({ center }) => {
   const map = useMap();
@@ -223,7 +221,7 @@ const CustomMap = ({ points, hearing, onPointSelect }) => {
               onClick={addStartPoint}
             />
             <input
-              style={{ backgroundColor: "#3e89df", color: "white", borderRadius: "10px", margin: "5px", width: "46%" }}
+              style={{ backgroundColor: "#1A1F2B", color: "white", borderRadius: "10px", margin: "5px", width: "46%" }}
               type="button"
               value="Zaproponuj trasę"
               onClick={generateExampleTrip}
@@ -302,7 +300,7 @@ const CustomMap = ({ points, hearing, onPointSelect }) => {
         </Marker>
       )}
 
-      {points.length > 0 && <Polyline positions={points} />}
+      {points.length > 0 && <Polyline positions={points} pathOptions={{color:"#df3428"}} />}
 
       {exampleTripPoints.length > 0 && <Polyline positions={exampleTripPoints} pathOptions={{ color: "#63b11a" }} />}
       {temporaryPoints.length > 0 && temporaryPoints.map((point, index) => (

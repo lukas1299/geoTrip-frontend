@@ -1,4 +1,4 @@
-import './App.css';
+
 import {Routes, Route } from 'react-router-dom';
 import MainPanel from './MainPanel';
 import RegisterPage from './RegisterPage';

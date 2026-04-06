@@ -4,13 +4,13 @@ import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import { useState } from "react";
-import { ReactComponent as SignIn } from './img/signin.svg';
-import { ReactComponent as Logo } from './img/map.svg';
+import { ReactComponent as SignIn } from '../img/signin.svg';
+import { ReactComponent as Logo } from '../img/map.svg';
 
-import authService from './services/auth.service';
+import authService from '../services/auth.service';
 
 import { useNavigate } from 'react-router-dom';
-import map from './img/mmap.png';
+import map from '../img/mmap.png';
 
 const LoginPage = () => {
 
